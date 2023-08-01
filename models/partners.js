@@ -6,13 +6,15 @@ const partnerSchema = new mongoose.Schema(
       type: String,
       require: true,
     },
-    path: {
+    logo: {
       type: String,
       require: true,
     },
     link: {
       type: String,
-      require: true,
+    },
+    isPrimary: {
+      type: Boolean,
     },
   },
   { timestamps: true },
