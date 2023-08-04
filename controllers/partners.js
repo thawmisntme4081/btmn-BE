@@ -58,3 +58,29 @@ export const deletePartner = async (req, res) => {
       .json({ error, status: STATUS_CODE.INTERNAL_SERVER_ERROR })
   }
 }
+
+export const updatePartner = async (req, res) => {
+  const { id } = req.params
+  const { name, logo } = req.body
+  try {
+    if (!id)
+      res.status(STATUS_CODE.BAD_REQUEST).json({
+        message: 'Missing ID',
+        status: STATUS_CODE.BAD_REQUEST,
+      })
+    if (!name || !logo)
+      res.status(STATUS_CODE.BAD_REQUEST).json({
+        message: 'Missing name or logo',
+        status: STATUS_CODE.BAD_REQUEST,
+      })
+    await partnerModel.findOneAndUpdate({ _id: id }, {}, { new: true })
+    await res.status(STATUS_CODE.OK).json({
+      message: `Updated partner ${id}`,
+      status: STATUS_CODE.OK,
+    })
+  } catch (error) {
+    res
+      .status(STATUS_CODE.INTERNAL_SERVER_ERROR)
+      .json({ error, status: STATUS_CODE.INTERNAL_SERVER_ERROR })
+  }
+}
