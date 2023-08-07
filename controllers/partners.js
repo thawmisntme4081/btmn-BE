@@ -1,4 +1,5 @@
 import { STATUS_CODE } from '../constants.js'
+import { invalidValue } from '../helpers.js'
 import { partnerModel } from '../models/partners.js'
 
 export const getPartners = async (req, res) => {
@@ -61,19 +62,22 @@ export const deletePartner = async (req, res) => {
 
 export const updatePartner = async (req, res) => {
   const { id } = req.params
-  const { name, logo } = req.body
+  const isBlankNameOrLogo =
+    (req.body?.hasOwnProperty('name') && invalidValue(req.body.name)) ||
+    (req.body?.hasOwnProperty('logo') && invalidValue(req.body.logo))
   try {
     if (!id)
       res.status(STATUS_CODE.BAD_REQUEST).json({
         message: 'Missing ID',
         status: STATUS_CODE.BAD_REQUEST,
       })
-    if (!name || !logo)
+    if (isBlankNameOrLogo) {
       res.status(STATUS_CODE.BAD_REQUEST).json({
         message: 'Missing name or logo',
         status: STATUS_CODE.BAD_REQUEST,
       })
-    await partnerModel.findOneAndUpdate({ _id: id }, {}, { new: true })
+    }
+    await partnerModel.findOneAndUpdate({ _id: id }, req.body, { new: true })
     await res.status(STATUS_CODE.OK).json({
       message: `Updated partner ${id}`,
       status: STATUS_CODE.OK,
