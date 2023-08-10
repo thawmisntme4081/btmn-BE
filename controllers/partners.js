@@ -1,10 +1,10 @@
 import { STATUS_CODE } from '../constants.js'
 import { invalidValue } from '../helpers.js'
-import { partnerModel } from '../models/partners.js'
+import { Partner } from '../models/partners.js'
 
 export const getPartners = async (req, res) => {
   try {
-    const partners = await partnerModel.find()
+    const partners = await Partner.find()
     if (!partners.length)
       res.status(STATUS_CODE.NOT_FOUND).json({
         data: [],
@@ -22,12 +22,12 @@ export const getPartners = async (req, res) => {
 export const addPartner = async (req, res) => {
   const newPartner = req.body
   try {
-    if (!newPartner?.name || !newPartner.logo)
+    if (!newPartner?.name || !newPartner?.logo || !newPartner?.primaryLogo)
       res.status(STATUS_CODE.BAD_REQUEST).json({
         message: 'Missing name or logo',
         status: STATUS_CODE.BAD_REQUEST,
       })
-    const partner = new partnerModel(newPartner)
+    const partner = new Partner(newPartner)
     await partner.save()
     await res.status(STATUS_CODE.CREATED).json({
       message: 'A new partner is created',
@@ -48,7 +48,7 @@ export const deletePartner = async (req, res) => {
         message: 'Missing ID',
         status: STATUS_CODE.BAD_REQUEST,
       })
-    await partnerModel.deleteOne({ _id: id })
+    await Partner.deleteOne({ _id: id })
     await res.status(STATUS_CODE.OK).json({
       message: `Deleted partner ${id}`,
       status: STATUS_CODE.OK,
@@ -64,6 +64,8 @@ export const updatePartner = async (req, res) => {
   const { id } = req.params
   const isBlankNameOrLogo =
     (req.body?.hasOwnProperty('name') && invalidValue(req.body.name)) ||
+    (req.body?.hasOwnProperty('primaryLogo') &&
+      invalidValue(req.body.primaryLogo)) ||
     (req.body?.hasOwnProperty('logo') && invalidValue(req.body.logo))
   try {
     if (!id)
@@ -77,7 +79,7 @@ export const updatePartner = async (req, res) => {
         status: STATUS_CODE.BAD_REQUEST,
       })
     }
-    await partnerModel.findOneAndUpdate({ _id: id }, req.body, { new: true })
+    await Partner.findOneAndUpdate({ _id: id }, req.body, { new: true })
     await res.status(STATUS_CODE.OK).json({
       message: `Updated partner ${id}`,
       status: STATUS_CODE.OK,

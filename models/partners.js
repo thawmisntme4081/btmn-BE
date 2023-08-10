@@ -1,22 +1,28 @@
-import mongoose from 'mongoose'
+import { Schema, model } from 'mongoose'
 
-const partnerSchema = new mongoose.Schema(
+const partnerSchema = new Schema(
   {
     name: {
       type: String,
-      require: true,
+      required: [true, 'Name is required'],
+    },
+    primaryLogo: {
+      type: String,
+      required: [true, 'Primary logo is required'],
     },
     logo: {
       type: String,
-      require: true,
+      required: [true, 'Logo is required'],
     },
     link: {
       type: String,
     },
-    isPrimary: {
-      type: Boolean,
+    type: {
+      type: Schema.Types.ObjectId,
+      ref: 'TypePartner',
+      required: true,
     },
   },
   { timestamps: true },
 )
-export const partnerModel = mongoose.model('Partner', partnerSchema)
+export const Partner = model('Partner', partnerSchema)

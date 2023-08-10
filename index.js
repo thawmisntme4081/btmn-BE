@@ -4,6 +4,7 @@ import dotenv from 'dotenv'
 import express from 'express'
 import connect from './database.js'
 import partnerRouter from './routes/partners.js'
+import typePartnerRouter from './routes/typePartners.js'
 
 dotenv.config()
 
@@ -15,6 +16,7 @@ app.use(bodyParser.urlencoded({ extended: true, limit: '30mb' }))
 app.use(cors({ origin: process.env.CLIENT_URL }))
 
 app.use('/partners', partnerRouter)
+app.use('/typePartners', typePartnerRouter)
 
 connect(() => {
   console.log('Connected to DB')
