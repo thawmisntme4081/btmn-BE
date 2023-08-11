@@ -1,10 +1,11 @@
 import { STATUS_CODE } from '../constants.js'
 import { invalidValue } from '../helpers.js'
 import { Partner } from '../models/partners.js'
+import { TypePartner } from '../models/typePartner.js'
 
 export const getPartners = async (req, res) => {
   try {
-    const partners = await Partner.find()
+    const partners = await Partner.find().populate('type').exec()
     if (!partners.length)
       res.status(STATUS_CODE.NOT_FOUND).json({
         data: [],
@@ -12,6 +13,52 @@ export const getPartners = async (req, res) => {
         message: 'Partners are not found',
       })
     res.status(STATUS_CODE.OK).json({ data: partners, status: STATUS_CODE.OK })
+  } catch (error) {
+    res
+      .status(STATUS_CODE.INTERNAL_SERVER_ERROR)
+      .json({ error, status: STATUS_CODE.INTERNAL_SERVER_ERROR })
+  }
+}
+
+export const getPartnersMainAndPlatinum = async (req, res) => {
+  try {
+    const typeMainAndPlatinum = await TypePartner.find({
+      $or: [{ value: 'main' }, { value: 'platinum' }],
+    }).select('_id')
+
+    if (!typeMainAndPlatinum.length)
+      res.status(STATUS_CODE.INTERNAL_SERVER_ERROR).json({
+        status: STATUS_CODE.NOT_FOUND,
+        message: 'Type partners are not found',
+      })
+
+    const [typeMain, typePlatinum] = typeMainAndPlatinum
+
+    const partnersMainAndPlatinum = await Partner.find(
+      {
+        $or: [{ type: typeMain._id }, { type: typePlatinum._id }],
+      },
+      { name: 1, logo: 1, link: 1 },
+    )
+      .populate('type')
+      .exec()
+
+    if (!partnersMainAndPlatinum.length)
+      res.status(STATUS_CODE.NOT_FOUND).json({
+        data: [],
+        status: STATUS_CODE.NOT_FOUND,
+        message: 'Partners are not found',
+      })
+
+    const main = partnersMainAndPlatinum.filter(
+      (partner) => partner.type.value === 'main',
+    )
+
+    const platinum = partnersMainAndPlatinum.filter(
+      (partner) => partner.type.value === 'platinum',
+    )
+
+    res.status(STATUS_CODE.OK).json({ main, platinum, status: STATUS_CODE.OK })
   } catch (error) {
     res
       .status(STATUS_CODE.INTERNAL_SERVER_ERROR)
